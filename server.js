@@ -3,6 +3,8 @@ const cors = require("cors");
 const app = express();
 const models = require("./models");
 const multer = require("multer");
+const bodyParser = require("body-parser");
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
@@ -95,6 +97,30 @@ app.post("/signin", (req, res) => {
       console.error(error);
       res.status(400).send("회원가입에 문제가 발생했습니다");
     });
+});
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.get("/check-username", async (req, res) => {
+  const username = req.query.username;
+
+  try {
+    const user = await models.Idlist.findOne({
+      where: {
+        userID: username,
+      },
+    });
+
+    if (user) {
+      res.json({ isDuplicate: true, message: "아이디가 이미 사용 중입니다." });
+    } else {
+      res.json({ isDuplicate: false, message: "아이디를 사용할 수 있습니다." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "서버 오류" });
+  }
 });
 
 app.post("/login", (req, res) => {

@@ -1,16 +1,12 @@
-# fly.toml app configuration file generated for hm-market-server on 2023-10-30T19:29:49+09:00
+# fly.toml app configuration file generated for pyj-market on 2023-10-30T23:45:12+09:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "hm-market-server"
+app = "pyj-market"
 primary_region = "hkg"
 
 [build]
-
-[[mounts]]
-  source = "data"
-  destination = "/data"
 
 [http_service]
   internal_port = 3000
