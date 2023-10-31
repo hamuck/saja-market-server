@@ -146,7 +146,7 @@ app.post("/login", (req, res) => {
       })
       .catch((error) => {
         console.error(error);
-        res.status(500).send("오류 발생");
+        res.status(500).send(`오류발생 ${message.error}`);
       });
   }
 });
