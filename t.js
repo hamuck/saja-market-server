@@ -3,6 +3,8 @@ const cors = require("cors");
 const app = express();
 const models = require("./models");
 const multer = require("multer");
+const bodyParser = require("body-parser");
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
@@ -14,6 +16,8 @@ const upload = multer({
   }),
 });
 const port = process.env.PORT || 8080;
+
+app.listen(port);
 
 app.use(express.json());
 app.use(cors());
@@ -97,6 +101,58 @@ app.post("/signin", (req, res) => {
     });
 });
 
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.get("/check-username", async (req, res) => {
+  const username = req.query.username;
+
+  try {
+    const user = await models.Idlist.findOne({
+      where: {
+        userID: username,
+      },
+    });
+
+    if (user) {
+      res.json({ isDuplicate: true, message: "아이디가 이미 사용 중입니다." });
+    } else {
+      res.json({ isDuplicate: false, message: "아이디를 사용할 수 있습니다." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "서버 오류" });
+  }
+});
+
+app.post("/login", (req, res) => {
+  const body = req.body;
+  const { userID, userPW, username, usermail } = body;
+  if (!userID || !userPW) {
+    res.status(400).send("모든 필드를 입력해주세요.");
+  } else {
+    models.Idlist.findOne({
+      where: {
+        userID: userID,
+        userPW: userPW,
+      },
+    })
+      .then((user) => {
+        if (user) {
+          req.session.userID = user.userID;
+          req.session.username = user.username;
+          res.status(200).send("로그인 성공");
+        } else {
+          res.status(401).send("로그인 실패");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).send(`오류발생 ${message.error}`);
+      });
+  }
+});
+
 app.get("/products/:id", (req, res) => {
   const params = req.params;
   const { id } = params;
@@ -143,7 +199,6 @@ app.post("/purchase/:id", (req, res) => {
       });
     })
     .catch((error) => {
-      console.error(error);
       res.status(500).send("에러가 발생했습니다.");
     });
 });
