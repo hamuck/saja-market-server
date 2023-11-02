@@ -1,35 +1,26 @@
-const express = require("express");
-const app = express();
-const models = require("./models");
-const bodyParser = require("body-parser");
+var http = require("http");
+var hostname = "127.0.0.1";
+var port = 8080;
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-app.get("/check-username", async (req, res) => {
-  const body = req.body;
-  const {userID,username} = body;
-
-  try {
-    const user = await models.Idlist.findOne({
-      where: {
-        userID: userID,
-        username:username
-      },
-    });
-
-    if (user) {
-      res.json({ isDuplicate: true, message: "아이디가 이미 사용 중입니다." });
-    } else {
-      res.json({ isDuplicate: false, message: "아이디를 사용할 수 있습니다." });
+const server = http.createServer(function (req, res) {
+  const path = req.url;
+  const method = req.method;
+  if (path === "/products") {
+    if (method === "GET") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      const products = JSON.stringify([
+        {
+          name: "농구공",
+          price: 5000,
+        },
+      ]);
+      res.end(products);
+    } else if (method === "POST") {
+      res.end("생성되었습니다!");
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "서버 오류" });
   }
+  res.end("good bye");
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
-});
+server.listen(port, hostname);
+console.log("grab market server on!");
