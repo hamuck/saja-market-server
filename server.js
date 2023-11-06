@@ -17,7 +17,7 @@ const upload = multer({
   }),
 });
 const port = process.env.PORT || 8080;
-const USER_COOKIE_KEY = 'USER';
+const USER_COOKIE_KEY = "USER";
 
 app.use(express.json());
 app.use(cors());
@@ -195,11 +195,9 @@ app.post("/login", (req, res) => {
       })
       .catch((error) => {
         console.error(error);
-        res.status(500).json({ error: "서버 오류" });
       });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "서버 오류" });
   }
 });
 
