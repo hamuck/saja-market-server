@@ -3,6 +3,9 @@ const cors = require("cors");
 const app = express();
 const models = require("./models");
 const multer = require("multer");
+const { Op } = require("sequelize");
+const cookieParser = require("cookie-parser");
+const path = require("path");
 const upload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
@@ -14,10 +17,13 @@ const upload = multer({
   }),
 });
 const port = process.env.PORT || 8080;
+const USER_COOKIE_KEY = 'USER';
 
 app.use(express.json());
 app.use(cors());
 app.use("/uploads", express.static("uploads"));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/banners", (req, res) => {
   models.Banner.findAll({
@@ -146,6 +152,55 @@ app.post("/purchase/:id", (req, res) => {
       console.error(error);
       res.status(500).send("에러가 발생했습니다.");
     });
+});
+
+app.get("/check-username", async (req, res) => {
+  const username = req.query.username;
+
+  try {
+    const user = await models.Idlist.findOne({
+      where: {
+        userID: username,
+      },
+    });
+
+    if (user) {
+      res.json({ isDuplicate: true, message: "아이디가 이미 사용 중입니다." });
+    } else {
+      res.json({ isDuplicate: false, message: "아이디를 사용할 수 있습니다." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "서버 오류" });
+  }
+});
+
+app.post("/login", (req, res) => {
+  const { userID, userPW } = req.body;
+
+  try {
+    models.Idlist.findOne({
+      where: {
+        [Op.and]: [{ userID: userID }, { userPW: userPW }],
+      },
+    })
+      .then((user) => {
+        if (user) {
+          // 인증 성공
+          res.status(200).json({ message: "로그인 성공" });
+        } else {
+          // 인증 실패
+          res.status(401).json({ error: "로그인 실패" });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).json({ error: "서버 오류" });
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "서버 오류" });
+  }
 });
 
 app.listen(port, () => {
